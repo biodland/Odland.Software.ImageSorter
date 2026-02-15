@@ -1,0 +1,65 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # fetch all tags
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Run update-version.ps1
+        shell: pwsh
+        run: pwsh ./update-version.ps1
+      - name: Restore dependencies
+        run: dotnet restore src/Odland.Software.ImageSorter/ImageSorter.csproj
+      - name: Build
+        run: dotnet build --configuration Release src/Odland.Software.ImageSorter/ImageSorter.csproj
+      - name: Publish
+        run: dotnet publish --configuration Release --output publish src/Odland.Software.ImageSorter/ImageSorter.csproj
+      - name: Upload publish artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: publish
+          path: src/Odland.Software.ImageSorter/publish/
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Download publish artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: publish
+          path: publish
+      - name: Generate release notes
+        run: |
+          TAG=$(echo ${{ github.ref }} | sed 's/refs\/tags\///')
+          PREV_TAG=$(git describe --tags --abbrev=0 $TAG^ 2>/dev/null || echo "")
+          if [ -n "$PREV_TAG" ]; then
+            git log $PREV_TAG..$TAG --pretty=format:"* %s" > release-notes.md
+          else
+            git log $TAG --pretty=format:"* %s" > release-notes.md
+          fi
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          body_path: release-notes.md
+          files: publish/**
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
