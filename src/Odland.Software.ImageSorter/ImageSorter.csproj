@@ -1,18 +1,17 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <StartArguments>source="G:\Nextcloud Data\Phone upload\Camera" target="B:\Bilder" sortby="date" structure="YYYY\\MM" rename="true"</StartArguments>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="MetadataExtractor" Version="2.9.0" />
   </ItemGroup>
-
+  <PropertyGroup>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
 </Project>

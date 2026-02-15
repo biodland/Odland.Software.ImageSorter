@@ -72,6 +72,36 @@ dotnet build
 ## License
 MIT License
 
+## GitLab CI/CD: Pushing and Releasing
+
+### Pushing Changes
+1. Make your code changes and commit them:
+   ```
+   git add .
+   git commit -m "Describe your changes"
+   git push origin main
+   ```
+   This will trigger the CI pipeline to build your project and create artifacts for the main branch.
+
+### Creating a Release
+1. Tag the commit you want to release (replace `v1.2.3` with your version):
+   ```
+   git tag v1.2.3
+   git push origin v1.2.3
+   ```
+2. (Optional) If you want to manually update the version in the .csproj file before tagging, run:
+   ```
+   pwsh ./update-version.ps1 -ProjectFile "src/Odland.Software.ImageSorter/ImageSorter.csproj"
+   ```
+   Then commit and push the version change before tagging.
+3. The GitLab pipeline will automatically:
+   - Update the project version in the .csproj file to match the tag (using the PowerShell script)
+   - Build and publish the project
+   - Generate release notes from commit messages since the last tag
+   - Create a GitLab Release with the published artifacts and release notes
+
+You can find the release and downloadable artifacts in the GitLab UI under **Releases**.
+
 ---
 
 For more help, run:
